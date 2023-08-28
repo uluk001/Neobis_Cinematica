@@ -1,4 +1,8 @@
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.core.exceptions import ValidationError
+from apps.movies.models import Movie
 
 
 class Cinema(models.Model):
@@ -10,7 +14,7 @@ class Cinema(models.Model):
     description = models.TextField()
 
     def __str__(self):
-        return self.name
+        return f'{self.name}'
 
 
 class Room(models.Model):
@@ -35,9 +39,15 @@ class Seat(models.Model):
 
 
 class Showtime(models.Model):
-    movie = models.ForeignKey('movies.Movie', on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
 
     def __str__(self):
         return f'{self.movie.title} - {self.room.name} - {self.start_time}'
+
+
+@receiver(pre_save, sender=Seat)
+def validate_seat_capacity(sender, instance, **kwargs):
+    if instance.room and instance.room.capacity <= instance.room.seat_set.count():
+        raise ValidationError("The room is already at full capacity.")

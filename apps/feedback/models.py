@@ -1,7 +1,8 @@
 from django.db import models
+from apps.users.models import CustomUser
 
 class Feedback(models.Model):
-    user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
